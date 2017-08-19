@@ -1,0 +1,8 @@
+---
+acme_client_domains: []
+acme_client_deploy_script: |
+  #!/bin/sh
+
+  set -e
+
+  /usr/sbin/service nginx reload
