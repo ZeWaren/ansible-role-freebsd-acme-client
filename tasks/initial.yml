@@ -1,19 +1,18 @@
 ---
 - name: Check if the private key already exists
-  stat: path="/usr/local/etc/acme/{{ config.domain }}"
+  stat: path="/usr/local/etc/acme/{{ domain.domain }}"
   register: dir_exists
 
-- name: Execute the initial allocation
-  command: acme-client -v -e -m -b -n -N -C /usr/local/www/.well-known-acme-challenge {{ config.domain }}
-  when: dir_exists.stat.exists == False
+- name: Start simple HTTP server in background
+  shell: cd /usr/local/www/acme/; python2.7 -mSimpleHTTPServer 80 </dev/null >/dev/null 2>&1 &
+  ignore_errors: yes
+  when: dir_exists.stat.exists == False and use_internal_http_server
 
-- name: Configure the weekly periodic renewal script
-  sysrc: name={{ periodic_entry.name }} value="{{periodic_entry.value}}" dest=/etc/periodic.conf
-  with_items:
-    - { name: 'weekly_acme_client_enable', value: 'YES' }
-    - { name: 'weekly_acme_client_challengedir', value: '/usr/local/www/.well-known-acme-challenge' }
-    - { name: 'weekly_acme_client_domains', value: "{{ config.domain }}" }
-    - { name: 'weekly_acme_client_deployscript', value: "/usr/local/etc/acme/deploy.sh" }
-    - { name: 'weekly_acme_client_args', value: "-b -m" }
-  loop_control:
-    loop_var: periodic_entry
+- name: Execute the initial allocation
+  command: acme-client -v -e -m -b -n -N -C /usr/local/www/acme/.well-known/acme-challenge {{ domain.domain }} {{ domain.aliases }}
+  when: dir_exists.stat.exists == False and use_internal_http_server
+
+- name: Kill the background HTTP server
+  shell: pkill -f 'python2.7 -mSimpleHTTPServer 80'
+  ignore_errors: yes
+  when: dir_exists.stat.exists == False

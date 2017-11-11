@@ -4,14 +4,14 @@
 
 - name: Make sure the challence directory is present
   file:
-    name: /usr/local/www/.well-known-acme-challenge
+    name: /usr/local/www/acme/.well-known/acme-challenge
     state: directory
     mode: 0750
     owner: root
     group: www
 
 - name: Copy the nginx include file to the server
-  copy: src=acme.conf dest=/usr/local/etc/nginx/acme.conf
+  copy: src=acme.conf dest=/usr/local/etc/acme/nginx-acme.conf
 
 - name: Copy the deploy script
   copy:
@@ -19,5 +19,28 @@
     dest: /usr/local/etc/acme/deploy.sh
     mode: 0755
 
-- include: initial.yml config={{ item }}
+- include: initial.yml domain={{ item }}
   with_items: "{{ acme_client_domains }}"
+
+- name: Create the domains file
+  copy:
+    content: |
+      {% for domain in acme_client_domains %}
+      {{ domain.domain }} {{ domain.aliases }}
+      {% endfor %}
+    dest: /usr/local/etc/acme/domains.txt
+
+- name: Copy the renew script
+  template:
+    src: renew.sh.j2
+    dest: /usr/local/etc/acme/renew.sh
+    mode: 755
+
+- name: Configure the weekly periodic renewal script
+  sysrc: name={{ periodic_entry.name }} value="{{periodic_entry.value}}" dest=/etc/periodic.conf
+  with_items:
+    - { name: 'weekly_acme_client_enable', value: 'YES' }
+    - { name: 'weekly_acme_client_renewscript', value: "/usr/local/etc/acme/renew.sh" }
+    - { name: 'weekly_acme_client_deployscript', value: "/usr/local/etc/acme/deploy.sh" }
+  loop_control:
+    loop_var: periodic_entry

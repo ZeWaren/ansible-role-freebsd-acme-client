@@ -1,0 +1,14 @@
+#!/bin/sh -e
+
+BASEDIR="/usr/local/etc/acme"
+SSLDIR="/usr/local/etc/ssl/acme"
+DOMAINSFILE="${BASEDIR}/domains.txt"
+CHALLENGEDIR="/usr/local/www/acme/.well-known/acme-challenge"
+
+cat "${DOMAINSFILE}" | while read domain line ; do
+   set +e # RC=2 when time to expire > 30 days
+   acme-client -b -m -C "${CHALLENGEDIR}" ${domain} ${line}
+   RC=$?
+   set -e
+   [ $RC -ne 0 -a $RC -ne 2 ] && exit $RC
+done
