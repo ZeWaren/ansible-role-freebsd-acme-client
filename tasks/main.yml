@@ -34,7 +34,7 @@
   template:
     src: renew.sh.j2
     dest: /usr/local/etc/acme/renew.sh
-    mode: 755
+    mode: 0755
 
 - name: Configure the weekly periodic renewal script
   sysrc: name={{ periodic_entry.name }} value="{{periodic_entry.value}}" dest=/etc/periodic.conf
