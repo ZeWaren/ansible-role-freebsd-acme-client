@@ -6,13 +6,13 @@
 - name: Start simple HTTP server in background
   shell: cd /usr/local/www/acme/; python2.7 -mSimpleHTTPServer 80 </dev/null >/dev/null 2>&1 &
   ignore_errors: yes
-  when: dir_exists.stat.exists == False and use_internal_http_server
+  when: dir_exists.stat.exists == False and acme_client_use_internal_http_server
 
 - name: Execute the initial allocation
   command: acme-client -v -e -m -b -n -N -C /usr/local/www/acme/.well-known/acme-challenge {{ domain.domain }} {{ domain.aliases }}
-  when: dir_exists.stat.exists == False and use_internal_http_server
+  when: dir_exists.stat.exists == False
 
 - name: Kill the background HTTP server
   shell: pkill -f 'python2.7 -mSimpleHTTPServer 80'
   ignore_errors: yes
-  when: dir_exists.stat.exists == False
+  when: dir_exists.stat.exists == False and acme_client_use_internal_http_server

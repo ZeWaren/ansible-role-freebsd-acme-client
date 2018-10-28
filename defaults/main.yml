@@ -6,4 +6,4 @@ acme_client_deploy_script: |
   set -e
 
   /usr/sbin/service nginx reload
-use_internal_http_server: yes
+acme_client_use_internal_http_server: yes
