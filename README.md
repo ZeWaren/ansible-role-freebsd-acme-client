@@ -32,11 +32,11 @@ Contains the script that is executed after the renew script is called.
         aliases: jambon.example.net truite.example.net poulet.example.net
     acme_client_use_internal_http_server: yes
     acme_client_deploy_script: |
-		#!/bin/sh
-	     
-		set -e
-	     
-		/usr/sbin/service my_service_using_the_certs reload
+        #!/bin/sh
+         
+        set -e
+         
+        /usr/sbin/service my_service_using_the_certs reload
 
 ## Dependencies
 
